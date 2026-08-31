@@ -69,23 +69,45 @@ export const STATE_PATHS = Object.fromEntries(
   Object.entries(RAW_PATHS).map(([code, d]) => [code, normalizePath(d)])
 );
 
+function boundsOfPath(d) {
+  const numbers = d.match(/-?\d+\.?\d*/g).map(Number);
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (let i = 0; i < numbers.length - 1; i += 2) {
+    const x = numbers[i];
+    const y = numbers[i + 1];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  return { minX, minY, maxX, maxY };
+}
+
 export function getPathBounds(paths) {
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
   for (const d of Object.values(paths)) {
-    const numbers = d.match(/-?\d+\.?\d*/g).map(Number);
-    for (let i = 0; i < numbers.length - 1; i += 2) {
-      const x = numbers[i];
-      const y = numbers[i + 1];
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    }
+    const b = boundsOfPath(d);
+    if (b.minX < minX) minX = b.minX;
+    if (b.maxX > maxX) maxX = b.maxX;
+    if (b.minY < minY) minY = b.minY;
+    if (b.maxY > maxY) maxY = b.maxY;
   }
   return { minX, minY, maxX, maxY };
+}
+
+// Label anchor point for one state: the center of its own bounding box. Not a
+// true geometric centroid (a concave state like Michigan or Louisiana can
+// have its bbox-center fall slightly off the actual landmass), but simple,
+// deterministic, and close enough at this map's scale for a small code label.
+export function getLabelPosition(d) {
+  const { minX, minY, maxX, maxY } = boundsOfPath(d);
+  return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 }
 
 export function validateStatePaths(paths, expectedCodes) {

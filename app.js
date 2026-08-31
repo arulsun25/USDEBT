@@ -1,7 +1,7 @@
 import { STATS, CATEGORIES, CATEGORY_LABELS, CATEGORY_EXPLAINERS, groupByCategory } from './shared/stats.js';
 import { STATE_DEBT, STATE_GRID_ROWS, STATE_GRID_COLS, STATE_MAP_EXPLAINER } from './shared/states.js';
-import { STATE_PATHS, getPathBounds } from './shared/state-paths.js';
-import { startTicker } from './shared/ticker.js';
+import { STATE_PATHS, getPathBounds, getLabelPosition } from './shared/state-paths.js';
+import { startTicker, formatValue, computeCurrentValue } from './shared/ticker.js';
 
 function renderCategoryCard(root, category, statsForCategory) {
   const card = document.createElement('section');
@@ -96,7 +96,7 @@ function colorForDebt(value, min, max) {
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-function buildGridView(states, min, max, onSelect, registerTile) {
+function buildGridView(states, min, max, interactions) {
   const wrapper = document.createElement('div');
   wrapper.className = 'state-map-wrapper';
   const grid = document.createElement('div');
@@ -115,8 +115,7 @@ function buildGridView(states, min, max, onSelect, registerTile) {
     tile.style.backgroundColor = background;
     tile.style.color = textColor;
     tile.style.textShadow = `0 0 3px ${haloColor}`;
-    tile.addEventListener('click', () => onSelect(state));
-    registerTile(state.code, tile);
+    interactions.attach(tile, state);
     grid.appendChild(tile);
   }
 
@@ -124,7 +123,7 @@ function buildGridView(states, min, max, onSelect, registerTile) {
   return wrapper;
 }
 
-function buildMapView(states, paths, min, max, onSelect, registerTile) {
+function buildMapView(states, paths, min, max, interactions) {
   const wrapper = document.createElement('div');
   wrapper.className = 'state-map-wrapper state-svg-wrapper';
 
@@ -145,21 +144,25 @@ function buildMapView(states, paths, min, max, onSelect, registerTile) {
 
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('d', d);
-    const { background } = colorForDebt(state.baseline, min, max);
+    const { background, textColor, haloColor } = colorForDebt(state.baseline, min, max);
     path.setAttribute('fill', background);
     path.setAttribute('stroke', '#0b0f14');
     path.setAttribute('stroke-width', '1');
     path.setAttribute('tabindex', '0');
     path.setAttribute('role', 'button');
     path.setAttribute('aria-label', `${state.name}: ${state.code}`);
-    path.addEventListener('click', () => onSelect(state));
-    path.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      event.preventDefault();
-      onSelect(state);
-    });
-    registerTile(state.code, path);
+    interactions.attach(path, state);
     svg.appendChild(path);
+
+    const { x, y } = getLabelPosition(d);
+    const label = document.createElementNS(SVG_NS, 'text');
+    label.setAttribute('x', String(x));
+    label.setAttribute('y', String(y));
+    label.setAttribute('class', 'state-svg-label');
+    label.setAttribute('fill', textColor);
+    label.setAttribute('stroke', haloColor);
+    label.textContent = state.code;
+    svg.appendChild(label);
   }
 
   wrapper.appendChild(svg);
@@ -215,6 +218,10 @@ function renderStateMapCard(root, states, paths) {
   readout.appendChild(readoutName);
   readout.appendChild(readoutValue);
 
+  const tooltip = document.createElement('div');
+  tooltip.className = 'state-tooltip';
+  tooltip.hidden = true;
+
   const baselines = states.map((s) => s.baseline);
   const min = Math.min(...baselines);
   const max = Math.max(...baselines);
@@ -225,23 +232,72 @@ function renderStateMapCard(root, states, paths) {
     tilesByCode.get(code).push(element);
   }
 
-  let stopCurrent = null;
-  function selectState(state) {
-    if (stopCurrent) stopCurrent();
+  let stopReadout = null;
+  function showInReadout(state) {
+    if (stopReadout) stopReadout();
+    readoutName.textContent = state.name;
+    stopReadout = startTicker(state, (text) => {
+      readoutValue.textContent = text;
+    });
+  }
+
+  let pinnedState = null;
+  function pinState(state) {
+    pinnedState = state;
     for (const elements of tilesByCode.values()) {
       for (const el of elements) el.classList.remove('selected');
     }
     for (const el of tilesByCode.get(state.code) ?? []) {
       el.classList.add('selected');
     }
-    readoutName.textContent = state.name;
-    stopCurrent = startTicker(state, (text) => {
-      readoutValue.textContent = text;
-    });
+    showInReadout(state);
   }
 
-  const gridView = buildGridView(states, min, max, selectState, registerTile);
-  const mapView = buildMapView(states, paths, min, max, selectState, registerTile);
+  function positionTooltip(clientX, clientY) {
+    const cardRect = card.getBoundingClientRect();
+    tooltip.style.left = `${clientX - cardRect.left + 14}px`;
+    tooltip.style.top = `${clientY - cardRect.top + 14}px`;
+  }
+
+  function previewHover(state, clientX, clientY) {
+    showInReadout(state);
+    tooltip.textContent = `${state.name}: ${formatValue(computeCurrentValue(state), state.unit)}`;
+    tooltip.hidden = false;
+    positionTooltip(clientX, clientY);
+  }
+
+  function previewFocus(state) {
+    // Keyboard focus has no cursor position to anchor a floating tooltip to —
+    // the always-visible readout panel is this path's feedback instead.
+    showInReadout(state);
+  }
+
+  function endPreview() {
+    tooltip.hidden = true;
+    if (pinnedState) showInReadout(pinnedState);
+  }
+
+  const interactions = {
+    attach(element, state) {
+      registerTile(state.code, element);
+      element.addEventListener('click', () => pinState(state));
+      element.addEventListener('mouseenter', (event) => previewHover(state, event.clientX, event.clientY));
+      element.addEventListener('mousemove', (event) => positionTooltip(event.clientX, event.clientY));
+      element.addEventListener('mouseleave', endPreview);
+      element.addEventListener('focus', () => previewFocus(state));
+      element.addEventListener('blur', endPreview);
+      if (element.tagName.toLowerCase() !== 'button') {
+        element.addEventListener('keydown', (event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          pinState(state);
+        });
+      }
+    },
+  };
+
+  const gridView = buildGridView(states, min, max, interactions);
+  const mapView = buildMapView(states, paths, min, max, interactions);
   mapView.hidden = true;
 
   gridButton.addEventListener('click', () => {
@@ -259,10 +315,11 @@ function renderStateMapCard(root, states, paths) {
 
   card.appendChild(gridView);
   card.appendChild(mapView);
+  card.appendChild(tooltip);
   card.appendChild(readout);
 
   const defaultState = states.reduce((a, b) => (b.baseline > a.baseline ? b : a));
-  selectState(defaultState);
+  pinState(defaultState);
 
   root.appendChild(card);
 }

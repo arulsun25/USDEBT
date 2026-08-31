@@ -58,6 +58,7 @@ body {
 .supporting-row span:last-child { color: #e8f1ff; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .state-map-card {
+  position: relative;
   justify-content: flex-start;
   padding-top: 3rem;
   overflow-y: auto;
@@ -128,6 +129,30 @@ body {
 .state-svg-map path.selected {
   stroke: #4ade80;
   stroke-width: 2.5;
+}
+.state-svg-label {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  paint-order: stroke fill;
+  stroke-width: 2.5px;
+  pointer-events: none;
+  user-select: none;
+}
+.state-tooltip {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  background: rgba(18, 24, 33, 0.95);
+  border: 1px solid #223040;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  color: #e8f1ff;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 .state-map {
   display: grid;
