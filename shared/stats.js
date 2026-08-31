@@ -20,14 +20,42 @@ export const CATEGORY_EXPLAINERS = {
   personal: 'What households owe outside of the federal government.',
 };
 
-// Real, verified government data sources — currently populated for 'debt'
-// only (the rest of shared/stats.js is still illustrative-snapshot data, so
-// a category only gets a link here once its real source has been checked).
+// Real, verified government/official data sources for each category's
+// headline stat. Every URL here was checked live (via search) before being
+// added, not recalled from memory — a wrong link is worse than no link.
+const SNAPSHOT_DISCLAIMER =
+  ' This site uses a fixed illustrative snapshot rather than live data from it — see the README for details.';
+
 export const CATEGORY_SOURCES = {
   debt: {
     label: 'Debt to the Penny — U.S. Treasury Fiscal Data',
     url: 'https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/',
-    note: 'The real, official source for the national debt total, updated each business day. This site uses a fixed illustrative snapshot rather than live data from it — see the README for details.',
+    note: `The real, official source for the national debt total, updated each business day.${SNAPSHOT_DISCLAIMER}`,
+  },
+  spending: {
+    label: 'Monthly Treasury Statement — U.S. Treasury Fiscal Data',
+    url: 'https://fiscaldata.treasury.gov/datasets/monthly-treasury-statement/',
+    note: `The real source for federal spending (outlays), published monthly by the Bureau of the Fiscal Service.${SNAPSHOT_DISCLAIMER}`,
+  },
+  revenue: {
+    label: 'Monthly Treasury Statement — U.S. Treasury Fiscal Data',
+    url: 'https://fiscaldata.treasury.gov/datasets/monthly-treasury-statement/',
+    note: `The real source for federal revenue (receipts), published monthly by the Bureau of the Fiscal Service — same report as Spending, tracking the other side of the ledger.${SNAPSHOT_DISCLAIMER}`,
+  },
+  economy: {
+    label: 'Gross Domestic Product — U.S. Bureau of Economic Analysis',
+    url: 'https://www.bea.gov/data/gdp',
+    note: `The real source for GDP, released quarterly by the BEA.${SNAPSHOT_DISCLAIMER}`,
+  },
+  population: {
+    label: 'U.S. and World Population Clock — U.S. Census Bureau',
+    url: 'https://www.census.gov/popclock/',
+    note: `The Census Bureau's own live population clock — the real version of the idea behind this card.${SNAPSHOT_DISCLAIMER}`,
+  },
+  personal: {
+    label: 'Household Debt and Credit Report — Federal Reserve Bank of New York',
+    url: 'https://www.newyorkfed.org/microeconomics/hhdc',
+    note: `The real source for household debt figures, published quarterly from the NY Fed's Consumer Credit Panel (Equifax data). Not a .gov domain — the New York Fed is a Federal Reserve Bank, not a federal agency — but it's the authoritative source for this data.${SNAPSHOT_DISCLAIMER}`,
   },
 };
 

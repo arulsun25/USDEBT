@@ -22,12 +22,14 @@ test('every category has a one-line explainer', () => {
   }
 });
 
-test('CATEGORY_SOURCES.debt links to a real, well-formed https URL', () => {
-  const source = CATEGORY_SOURCES.debt;
-  assert.ok(source, 'expected a debt source entry');
-  assert.ok(source.label.length > 0);
-  assert.match(source.url, /^https:\/\//);
-  assert.ok(source.note.length > 0);
+test('every category has a source entry with a well-formed https URL', () => {
+  for (const category of CATEGORIES) {
+    const source = CATEGORY_SOURCES[category];
+    assert.ok(source, `expected a source entry for ${category}`);
+    assert.ok(source.label.length > 0, `${category} source missing a label`);
+    assert.match(source.url, /^https:\/\//, `${category} source URL should be https`);
+    assert.ok(source.note.length > 0, `${category} source missing a note`);
+  }
 });
 
 test('groupByCategory buckets every stat under its own category and covers all categories', () => {
