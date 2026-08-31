@@ -1,5 +1,12 @@
 const SNAPSHOT = '2026-08-31T00:00:00.000Z';
 
+// Real values pulled from the Treasury Fiscal Data API (Debt to the Penny),
+// cross-checked against 10 days of actual daily records (2026-08-14 through
+// 2026-08-27) rather than a single day, so the per-second rate reflects a
+// real recent trend instead of one noisy day-to-day jump. Unlike SNAPSHOT
+// above, this is real data, not an illustrative estimate.
+const DEBT_TO_PENNY_ASOF = '2026-08-27T00:00:00.000Z';
+
 export const CATEGORIES = ['debt', 'spending', 'revenue', 'economy', 'population', 'personal'];
 
 export const CATEGORY_LABELS = {
@@ -63,11 +70,11 @@ const VALID_UNITS = new Set(['usd', 'usd-cents', 'count', 'percent']);
 
 export const STATS = [
   // Debt
-  { id: 'total-national-debt', label: 'Total National Debt', category: 'debt', unit: 'usd', baseline: 37300000000000, asOf: SNAPSHOT, perSecondRate: 85000, source: 'US Treasury Fiscal Data API (illustrative snapshot)' },
-  { id: 'debt-held-by-public', label: 'Debt Held by the Public', category: 'debt', unit: 'usd', baseline: 28500000000000, asOf: SNAPSHOT, perSecondRate: 60000, source: 'US Treasury Fiscal Data API (illustrative snapshot)' },
-  { id: 'intragovernmental-holdings', label: 'Intragovernmental Holdings', category: 'debt', unit: 'usd', baseline: 8800000000000, asOf: SNAPSHOT, perSecondRate: 25000, source: 'US Treasury Fiscal Data API (illustrative snapshot)' },
-  { id: 'debt-per-citizen', label: 'Debt Per Citizen', category: 'debt', unit: 'usd-cents', baseline: 108963.75, asOf: SNAPSHOT, perSecondRate: 0.000248, source: 'Derived: total debt / US population (illustrative snapshot)' },
-  { id: 'debt-per-taxpayer', label: 'Debt Per Taxpayer', category: 'debt', unit: 'usd-cents', baseline: 231677.02, asOf: SNAPSHOT, perSecondRate: 0.000528, source: 'Derived: total debt / US taxpayers (illustrative snapshot)' },
+  { id: 'total-national-debt', label: 'Total National Debt', category: 'debt', unit: 'usd', baseline: 40077529831942.94, asOf: DEBT_TO_PENNY_ASOF, perSecondRate: 128112, source: 'US Treasury Fiscal Data API — Debt to the Penny, actual value as of 2026-08-27' },
+  { id: 'debt-held-by-public', label: 'Debt Held by the Public', category: 'debt', unit: 'usd', baseline: 32313802811901.63, asOf: DEBT_TO_PENNY_ASOF, perSecondRate: 100970, source: 'US Treasury Fiscal Data API — Debt to the Penny, actual value as of 2026-08-27' },
+  { id: 'intragovernmental-holdings', label: 'Intragovernmental Holdings', category: 'debt', unit: 'usd', baseline: 7763727020041.31, asOf: DEBT_TO_PENNY_ASOF, perSecondRate: 27142, source: 'US Treasury Fiscal Data API — Debt to the Penny, actual value as of 2026-08-27' },
+  { id: 'debt-per-citizen', label: 'Debt Per Citizen', category: 'debt', unit: 'usd-cents', baseline: 117083.06, asOf: DEBT_TO_PENNY_ASOF, perSecondRate: 0.0003742, source: 'Derived: real total debt (Treasury, 2026-08-27) / illustrative US population estimate' },
+  { id: 'debt-per-taxpayer', label: 'Debt Per Taxpayer', category: 'debt', unit: 'usd-cents', baseline: 248922.55, asOf: DEBT_TO_PENNY_ASOF, perSecondRate: 0.0007957, source: 'Derived: real total debt (Treasury, 2026-08-27) / illustrative US taxpayer estimate' },
   { id: 'debt-to-gdp-ratio', label: 'Debt to GDP Ratio', category: 'debt', unit: 'percent', baseline: 124.5, asOf: SNAPSHOT, perSecondRate: 0, source: 'FRED (illustrative snapshot)' },
   { id: 'fiscal-year-interest-paid', label: 'Interest Paid This Fiscal Year', category: 'debt', unit: 'usd', baseline: 950000000000, asOf: SNAPSHOT, perSecondRate: 34880, source: 'US Treasury Fiscal Data API (illustrative snapshot)' },
 
