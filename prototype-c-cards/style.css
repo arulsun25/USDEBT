@@ -44,8 +44,9 @@ body {
 .headline-value {
   color: #4ade80;
   font-weight: 800;
-  font-size: clamp(2rem, 8vw, 3.5rem);
+  font-size: clamp(1.4rem, 6vw, 3.5rem);
   font-variant-numeric: tabular-nums;
+  word-break: break-all;
 }
 .headline-label { color: #9fb3c8; margin-top: 0.5rem; font-size: 1rem; }
 .supporting-stats { margin-top: 2rem; width: 100%; max-width: 420px; }
