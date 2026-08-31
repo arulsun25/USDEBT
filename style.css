@@ -5,18 +5,42 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #0b0f14;
   color: #e8f1ff;
-}
-.cards-root {
-  scroll-snap-type: y mandatory;
-  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   height: 100dvh;
+  overflow: hidden;
+}
+.ad-slot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  background: #121821;
+  border: 1px dashed #223040;
+}
+.ad-slot-top { border-top: none; border-left: none; border-right: none; }
+.ad-slot-bottom { border-bottom: none; border-left: none; border-right: none; }
+.ad-slot-label {
+  color: #556577;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+@media (min-width: 700px) {
+  .ad-slot { height: 90px; }
+}
+.cards-root {
+  flex: 1 1 auto;
+  min-height: 0;
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
 }
 .story-card {
   position: relative;
   scroll-snap-align: start;
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
