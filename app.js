@@ -1,5 +1,6 @@
 import { STATS, CATEGORIES, CATEGORY_LABELS, CATEGORY_EXPLAINERS, groupByCategory } from './shared/stats.js';
 import { STATE_DEBT, STATE_GRID_ROWS, STATE_GRID_COLS, STATE_MAP_EXPLAINER } from './shared/states.js';
+import { STATE_PATHS, getPathBounds } from './shared/state-paths.js';
 import { startTicker } from './shared/ticker.js';
 
 function renderCategoryCard(root, category, statsForCategory) {
@@ -93,7 +94,79 @@ function colorForDebt(value, min, max) {
   };
 }
 
-function renderStateMapCard(root, states) {
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function buildGridView(states, min, max, onSelect, registerTile) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'state-map-wrapper';
+  const grid = document.createElement('div');
+  grid.className = 'state-map';
+  grid.style.gridTemplateColumns = `repeat(${STATE_GRID_COLS}, 44px)`;
+  grid.style.gridTemplateRows = `repeat(${STATE_GRID_ROWS}, 44px)`;
+
+  for (const state of states) {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'state-tile';
+    tile.textContent = state.code;
+    tile.style.gridRow = String(state.row + 1);
+    tile.style.gridColumn = String(state.col + 1);
+    const { background, textColor, haloColor } = colorForDebt(state.baseline, min, max);
+    tile.style.backgroundColor = background;
+    tile.style.color = textColor;
+    tile.style.textShadow = `0 0 3px ${haloColor}`;
+    tile.addEventListener('click', () => onSelect(state));
+    registerTile(state.code, tile);
+    grid.appendChild(tile);
+  }
+
+  wrapper.appendChild(grid);
+  return wrapper;
+}
+
+function buildMapView(states, paths, min, max, onSelect, registerTile) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'state-map-wrapper state-svg-wrapper';
+
+  const bounds = getPathBounds(paths);
+  const margin = 4;
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('class', 'state-svg-map');
+  svg.setAttribute(
+    'viewBox',
+    `${bounds.minX - margin} ${bounds.minY - margin} ${bounds.maxX - bounds.minX + margin * 2} ${bounds.maxY - bounds.minY + margin * 2}`
+  );
+
+  // DC has no border geometry in this dataset (the source covers the 50
+  // states only) — it appears in the Grid view but not here.
+  for (const state of states) {
+    const d = paths[state.code];
+    if (!d) continue;
+
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', d);
+    const { background } = colorForDebt(state.baseline, min, max);
+    path.setAttribute('fill', background);
+    path.setAttribute('stroke', '#0b0f14');
+    path.setAttribute('stroke-width', '1');
+    path.setAttribute('tabindex', '0');
+    path.setAttribute('role', 'button');
+    path.setAttribute('aria-label', `${state.name}: ${state.code}`);
+    path.addEventListener('click', () => onSelect(state));
+    path.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      onSelect(state);
+    });
+    registerTile(state.code, path);
+    svg.appendChild(path);
+  }
+
+  wrapper.appendChild(svg);
+  return wrapper;
+}
+
+function renderStateMapCard(root, states, paths) {
   const card = document.createElement('section');
   card.className = 'story-card state-map-card';
 
@@ -119,14 +192,19 @@ function renderStateMapCard(root, states) {
   legend.appendChild(legendHigh);
   card.appendChild(legend);
 
-  const wrapper = document.createElement('div');
-  wrapper.className = 'state-map-wrapper';
-  const grid = document.createElement('div');
-  grid.className = 'state-map';
-  grid.style.gridTemplateColumns = `repeat(${STATE_GRID_COLS}, 44px)`;
-  grid.style.gridTemplateRows = `repeat(${STATE_GRID_ROWS}, 44px)`;
-  wrapper.appendChild(grid);
-  card.appendChild(wrapper);
+  const viewToggle = document.createElement('div');
+  viewToggle.className = 'state-view-toggle';
+  const gridButton = document.createElement('button');
+  gridButton.type = 'button';
+  gridButton.className = 'state-view-button active';
+  gridButton.textContent = 'Grid';
+  const mapButton = document.createElement('button');
+  mapButton.type = 'button';
+  mapButton.className = 'state-view-button';
+  mapButton.textContent = 'Map';
+  viewToggle.appendChild(gridButton);
+  viewToggle.appendChild(mapButton);
+  card.appendChild(viewToggle);
 
   const readout = document.createElement('div');
   readout.className = 'state-readout';
@@ -136,45 +214,55 @@ function renderStateMapCard(root, states) {
   readoutValue.className = 'state-readout-value';
   readout.appendChild(readoutName);
   readout.appendChild(readoutValue);
-  card.appendChild(readout);
 
   const baselines = states.map((s) => s.baseline);
   const min = Math.min(...baselines);
   const max = Math.max(...baselines);
 
-  let stopCurrent = null;
-  let selectedTile = null;
+  const tilesByCode = new Map();
+  function registerTile(code, element) {
+    if (!tilesByCode.has(code)) tilesByCode.set(code, []);
+    tilesByCode.get(code).push(element);
+  }
 
-  function selectState(state, tile) {
+  let stopCurrent = null;
+  function selectState(state) {
     if (stopCurrent) stopCurrent();
-    if (selectedTile) selectedTile.classList.remove('selected');
-    selectedTile = tile;
-    tile.classList.add('selected');
+    for (const elements of tilesByCode.values()) {
+      for (const el of elements) el.classList.remove('selected');
+    }
+    for (const el of tilesByCode.get(state.code) ?? []) {
+      el.classList.add('selected');
+    }
     readoutName.textContent = state.name;
     stopCurrent = startTicker(state, (text) => {
       readoutValue.textContent = text;
     });
   }
 
-  const tileByCode = new Map();
-  for (const state of states) {
-    const tile = document.createElement('button');
-    tile.type = 'button';
-    tile.className = 'state-tile';
-    tile.textContent = state.code;
-    tile.style.gridRow = String(state.row + 1);
-    tile.style.gridColumn = String(state.col + 1);
-    const { background, textColor, haloColor } = colorForDebt(state.baseline, min, max);
-    tile.style.backgroundColor = background;
-    tile.style.color = textColor;
-    tile.style.textShadow = `0 0 3px ${haloColor}`;
-    tile.addEventListener('click', () => selectState(state, tile));
-    tileByCode.set(state.code, tile);
-    grid.appendChild(tile);
-  }
+  const gridView = buildGridView(states, min, max, selectState, registerTile);
+  const mapView = buildMapView(states, paths, min, max, selectState, registerTile);
+  mapView.hidden = true;
+
+  gridButton.addEventListener('click', () => {
+    gridView.hidden = false;
+    mapView.hidden = true;
+    gridButton.classList.add('active');
+    mapButton.classList.remove('active');
+  });
+  mapButton.addEventListener('click', () => {
+    gridView.hidden = true;
+    mapView.hidden = false;
+    mapButton.classList.add('active');
+    gridButton.classList.remove('active');
+  });
+
+  card.appendChild(gridView);
+  card.appendChild(mapView);
+  card.appendChild(readout);
 
   const defaultState = states.reduce((a, b) => (b.baseline > a.baseline ? b : a));
-  selectState(defaultState, tileByCode.get(defaultState.code));
+  selectState(defaultState);
 
   root.appendChild(card);
 }
@@ -198,7 +286,7 @@ const root = document.getElementById('cards');
 const groups = groupByCategory(STATS);
 
 renderCategoryCard(root, 'debt', groups.get('debt'));
-renderStateMapCard(root, STATE_DEBT);
+renderStateMapCard(root, STATE_DEBT, STATE_PATHS);
 for (const category of CATEGORIES) {
   if (category === 'debt') continue;
   renderCategoryCard(root, category, groups.get(category));
