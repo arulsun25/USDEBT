@@ -56,3 +56,56 @@ body {
 }
 .supporting-row span:first-child { color: #9fb3c8; }
 .supporting-row span:last-child { color: #e8f1ff; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.state-map-card {
+  justify-content: flex-start;
+  padding-top: 3rem;
+  overflow-y: auto;
+}
+.state-map-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  max-width: 640px;
+  padding: 0.5rem 0;
+}
+.state-map {
+  display: grid;
+  gap: 3px;
+  margin: 0 auto;
+  width: max-content;
+}
+.state-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #0b0f14;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.state-tile:hover,
+.state-tile:focus-visible {
+  outline: 2px solid #e8f1ff;
+  outline-offset: 1px;
+}
+.state-tile.selected {
+  outline: 3px solid #4ade80;
+  outline-offset: 1px;
+}
+.state-readout { margin-top: 1.5rem; text-align: center; }
+.state-readout-name { color: #9fb3c8; font-size: 0.9rem; }
+.state-readout-value {
+  color: #4ade80;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 6vw, 2.5rem);
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+  margin-top: 0.25rem;
+}
