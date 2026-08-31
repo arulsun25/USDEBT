@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { STATS, CATEGORIES, CATEGORY_LABELS, CATEGORY_EXPLAINERS, groupByCategory, validateStats } from './stats.js';
+import { STATS, CATEGORIES, CATEGORY_LABELS, CATEGORY_EXPLAINERS, CATEGORY_SOURCES, groupByCategory, validateStats } from './stats.js';
 
 test('STATS has exactly 45 entries', () => {
   assert.equal(STATS.length, 45);
@@ -20,6 +20,14 @@ test('every category has a one-line explainer', () => {
   for (const category of CATEGORIES) {
     assert.ok(CATEGORY_EXPLAINERS[category], `missing explainer for ${category}`);
   }
+});
+
+test('CATEGORY_SOURCES.debt links to a real, well-formed https URL', () => {
+  const source = CATEGORY_SOURCES.debt;
+  assert.ok(source, 'expected a debt source entry');
+  assert.ok(source.label.length > 0);
+  assert.match(source.url, /^https:\/\//);
+  assert.ok(source.note.length > 0);
 });
 
 test('groupByCategory buckets every stat under its own category and covers all categories', () => {

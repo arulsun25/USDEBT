@@ -1,4 +1,4 @@
-import { STATS, CATEGORIES, CATEGORY_LABELS, CATEGORY_EXPLAINERS, groupByCategory } from './shared/stats.js';
+import { STATS, CATEGORIES, CATEGORY_LABELS, CATEGORY_EXPLAINERS, CATEGORY_SOURCES, groupByCategory } from './shared/stats.js';
 import { STATE_DEBT, STATE_GRID_ROWS, STATE_GRID_COLS, STATE_MAP_EXPLAINER } from './shared/states.js';
 import { STATE_PATHS, getPathBounds, getLabelPosition } from './shared/state-paths.js';
 import { startTicker, formatValue, computeCurrentValue } from './shared/ticker.js';
@@ -49,6 +49,27 @@ function renderCategoryCard(root, category, statsForCategory) {
     });
   }
   card.appendChild(supporting);
+
+  const source = CATEGORY_SOURCES[category];
+  if (source) {
+    const sourceBlock = document.createElement('div');
+    sourceBlock.className = 'source-note';
+
+    const link = document.createElement('a');
+    link.className = 'source-link';
+    link.href = source.url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = `Source: ${source.label} ↗`;
+    sourceBlock.appendChild(link);
+
+    const note = document.createElement('p');
+    note.className = 'source-explanation';
+    note.textContent = source.note;
+    sourceBlock.appendChild(note);
+
+    card.appendChild(sourceBlock);
+  }
 
   root.appendChild(card);
 }

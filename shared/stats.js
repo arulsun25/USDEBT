@@ -20,6 +20,17 @@ export const CATEGORY_EXPLAINERS = {
   personal: 'What households owe outside of the federal government.',
 };
 
+// Real, verified government data sources — currently populated for 'debt'
+// only (the rest of shared/stats.js is still illustrative-snapshot data, so
+// a category only gets a link here once its real source has been checked).
+export const CATEGORY_SOURCES = {
+  debt: {
+    label: 'Debt to the Penny — U.S. Treasury Fiscal Data',
+    url: 'https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/',
+    note: 'The real, official source for the national debt total, updated each business day. This site uses a fixed illustrative snapshot rather than live data from it — see the README for details.',
+  },
+};
+
 const VALID_UNITS = new Set(['usd', 'usd-cents', 'count', 'percent']);
 
 export const STATS = [

@@ -85,6 +85,26 @@ body {
 .supporting-row span:first-child { color: #9fb3c8; }
 .supporting-row span:last-child { color: #e8f1ff; font-weight: 600; font-variant-numeric: tabular-nums; }
 
+.source-note {
+  margin-top: 1.5rem;
+  max-width: 420px;
+}
+.source-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #7fb3ff;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.source-explanation {
+  margin: 0.35rem 0 0;
+  color: #9fb3c8;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
 .state-map-card {
   position: relative;
   justify-content: flex-start;
