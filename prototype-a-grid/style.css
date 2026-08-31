@@ -14,7 +14,7 @@ body {
   border-bottom: 1px solid #223040;
 }
 .top-bar h1 { font-size: 1rem; margin: 0; }
-.back-link { color: #9fb3c8; text-decoration: none; font-size: 0.85rem; }
+.back-link { color: #9fb3c8; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; min-height: 44px; }
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

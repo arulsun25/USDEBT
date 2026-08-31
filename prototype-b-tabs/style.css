@@ -15,7 +15,7 @@ body {
   border-bottom: 1px solid #223040;
 }
 .top-bar h1 { font-size: 1rem; margin: 0; }
-.back-link { color: #9fb3c8; text-decoration: none; font-size: 0.85rem; }
+.back-link { color: #9fb3c8; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; min-height: 44px; }
 .panel {
   display: flex;
   flex-direction: column;
@@ -44,12 +44,12 @@ body {
 }
 .tab-button {
   flex: 1 0 auto;
-  min-width: 96px;
-  padding: 0.9rem 0.5rem;
+  min-width: 58px;
+  padding: 0.9rem 0.25rem;
   background: none;
   border: none;
   color: #9fb3c8;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   border-top: 2px solid transparent;
 }
 .tab-button.active { color: #4ade80; border-top-color: #4ade80; }

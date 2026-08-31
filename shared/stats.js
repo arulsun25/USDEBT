@@ -18,8 +18,8 @@ export const STATS = [
   { id: 'total-national-debt', label: 'Total National Debt', category: 'debt', unit: 'usd', baseline: 37300000000000, asOf: SNAPSHOT, perSecondRate: 85000, source: 'US Treasury Fiscal Data API (illustrative snapshot)' },
   { id: 'debt-held-by-public', label: 'Debt Held by the Public', category: 'debt', unit: 'usd', baseline: 28500000000000, asOf: SNAPSHOT, perSecondRate: 60000, source: 'US Treasury Fiscal Data API (illustrative snapshot)' },
   { id: 'intragovernmental-holdings', label: 'Intragovernmental Holdings', category: 'debt', unit: 'usd', baseline: 8800000000000, asOf: SNAPSHOT, perSecondRate: 25000, source: 'US Treasury Fiscal Data API (illustrative snapshot)' },
-  { id: 'debt-per-citizen', label: 'Debt Per Citizen', category: 'debt', unit: 'usd-cents', baseline: 108963.75, asOf: SNAPSHOT, perSecondRate: 0.25, source: 'Derived: total debt / US population (illustrative snapshot)' },
-  { id: 'debt-per-taxpayer', label: 'Debt Per Taxpayer', category: 'debt', unit: 'usd-cents', baseline: 231677.02, asOf: SNAPSHOT, perSecondRate: 0.53, source: 'Derived: total debt / US taxpayers (illustrative snapshot)' },
+  { id: 'debt-per-citizen', label: 'Debt Per Citizen', category: 'debt', unit: 'usd-cents', baseline: 108963.75, asOf: SNAPSHOT, perSecondRate: 0.000248, source: 'Derived: total debt / US population (illustrative snapshot)' },
+  { id: 'debt-per-taxpayer', label: 'Debt Per Taxpayer', category: 'debt', unit: 'usd-cents', baseline: 231677.02, asOf: SNAPSHOT, perSecondRate: 0.000528, source: 'Derived: total debt / US taxpayers (illustrative snapshot)' },
   { id: 'debt-to-gdp-ratio', label: 'Debt to GDP Ratio', category: 'debt', unit: 'percent', baseline: 124.5, asOf: SNAPSHOT, perSecondRate: 0, source: 'FRED (illustrative snapshot)' },
   { id: 'fiscal-year-interest-paid', label: 'Interest Paid This Fiscal Year', category: 'debt', unit: 'usd', baseline: 950000000000, asOf: SNAPSHOT, perSecondRate: 34880, source: 'US Treasury Fiscal Data API (illustrative snapshot)' },
 
@@ -43,7 +43,7 @@ export const STATS = [
 
   // Economy
   { id: 'gdp-nominal', label: 'Nominal GDP', category: 'economy', unit: 'usd', baseline: 29300000000000, asOf: SNAPSHOT, perSecondRate: 27870, source: 'FRED / BEA (illustrative snapshot)' },
-  { id: 'gdp-per-capita', label: 'GDP Per Capita', category: 'economy', unit: 'usd-cents', baseline: 85600.0, asOf: SNAPSHOT, perSecondRate: 0.08, source: 'Derived: GDP / population (illustrative snapshot)' },
+  { id: 'gdp-per-capita', label: 'GDP Per Capita', category: 'economy', unit: 'usd-cents', baseline: 85600.0, asOf: SNAPSHOT, perSecondRate: 0.0000814, source: 'Derived: GDP / population (illustrative snapshot)' },
   { id: 'unemployment-rate', label: 'Unemployment Rate', category: 'economy', unit: 'percent', baseline: 4.2, asOf: SNAPSHOT, perSecondRate: 0, source: 'BLS (illustrative snapshot)' },
   { id: 'inflation-rate-cpi', label: 'Inflation Rate (CPI)', category: 'economy', unit: 'percent', baseline: 2.9, asOf: SNAPSHOT, perSecondRate: 0, source: 'BLS (illustrative snapshot)' },
   { id: 'federal-funds-rate', label: 'Federal Funds Rate', category: 'economy', unit: 'percent', baseline: 4.25, asOf: SNAPSHOT, perSecondRate: 0, source: 'FRED (illustrative snapshot)' },
@@ -65,9 +65,9 @@ export const STATS = [
   { id: 'student-loan-debt-total', label: 'Total Student Loan Debt', category: 'personal', unit: 'usd', baseline: 1780000000000, asOf: SNAPSHOT, perSecondRate: 5100, source: 'NY Fed Consumer Credit Panel (illustrative snapshot)' },
   { id: 'credit-card-debt-total', label: 'Total Credit Card Debt', category: 'personal', unit: 'usd', baseline: 1320000000000, asOf: SNAPSHOT, perSecondRate: 4600, source: 'NY Fed Consumer Credit Panel (illustrative snapshot)' },
   { id: 'auto-loan-debt-total', label: 'Total Auto Loan Debt', category: 'personal', unit: 'usd', baseline: 1660000000000, asOf: SNAPSHOT, perSecondRate: 4100, source: 'NY Fed Consumer Credit Panel (illustrative snapshot)' },
-  { id: 'avg-credit-card-debt-per-household', label: 'Avg Credit Card Debt / Household', category: 'personal', unit: 'usd-cents', baseline: 10990.0, asOf: SNAPSHOT, perSecondRate: 0.01, source: 'Derived (illustrative snapshot)' },
-  { id: 'avg-student-loan-debt-per-borrower', label: 'Avg Student Loan Debt / Borrower', category: 'personal', unit: 'usd-cents', baseline: 39075.0, asOf: SNAPSHOT, perSecondRate: 0.01, source: 'Derived (illustrative snapshot)' },
-  { id: 'avg-mortgage-debt-per-household', label: 'Avg Mortgage Debt / Household', category: 'personal', unit: 'usd-cents', baseline: 244500.0, asOf: SNAPSHOT, perSecondRate: 0.02, source: 'Derived (illustrative snapshot)' },
+  { id: 'avg-credit-card-debt-per-household', label: 'Avg Credit Card Debt / Household', category: 'personal', unit: 'usd-cents', baseline: 10990.0, asOf: SNAPSHOT, perSecondRate: 0.0000348, source: 'Derived (illustrative snapshot)' },
+  { id: 'avg-student-loan-debt-per-borrower', label: 'Avg Student Loan Debt / Borrower', category: 'personal', unit: 'usd-cents', baseline: 39075.0, asOf: SNAPSHOT, perSecondRate: 0.0001194, source: 'Derived (illustrative snapshot)' },
+  { id: 'avg-mortgage-debt-per-household', label: 'Avg Mortgage Debt / Household', category: 'personal', unit: 'usd-cents', baseline: 244500.0, asOf: SNAPSHOT, perSecondRate: 0.0001727, source: 'Derived (illustrative snapshot)' },
   { id: 'personal-savings-rate', label: 'Personal Savings Rate', category: 'personal', unit: 'percent', baseline: 4.6, asOf: SNAPSHOT, perSecondRate: 0, source: 'BEA (illustrative snapshot)' },
   { id: 'unfunded-liabilities-total', label: 'Total Unfunded Liabilities', category: 'personal', unit: 'usd', baseline: 212000000000000, asOf: SNAPSHOT, perSecondRate: 605000, source: 'Trustees reports methodology (illustrative snapshot)' },
 ];
@@ -89,6 +89,7 @@ export function validateStats(stats) {
   for (const stat of stats) {
     if (seenIds.has(stat.id)) errors.push(`Duplicate id: ${stat.id}`);
     seenIds.add(stat.id);
+    if (typeof stat.id !== 'string' || stat.id.length === 0) errors.push(`Invalid id on stat with label "${stat.label}"`);
     if (!CATEGORIES.includes(stat.category)) errors.push(`Invalid category "${stat.category}" on ${stat.id}`);
     if (!VALID_UNITS.has(stat.unit)) errors.push(`Invalid unit "${stat.unit}" on ${stat.id}`);
     if (typeof stat.baseline !== 'number' || Number.isNaN(stat.baseline)) errors.push(`Invalid baseline on ${stat.id}`);
