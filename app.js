@@ -324,6 +324,36 @@ function renderStateMapCard(root, states, paths) {
   root.appendChild(card);
 }
 
+function addScrollCue(card) {
+  const cue = document.createElement('div');
+  cue.className = 'scroll-cue';
+  cue.setAttribute('aria-hidden', 'true');
+
+  const chevron = document.createElement('div');
+  chevron.className = 'scroll-cue-chevron';
+  chevron.textContent = '⌄';
+
+  const label = document.createElement('div');
+  label.className = 'scroll-cue-label';
+  label.textContent = 'Scroll for more';
+
+  cue.appendChild(chevron);
+  cue.appendChild(label);
+  card.appendChild(cue);
+}
+
+function addScrollCues(root) {
+  const cards = Array.from(root.querySelectorAll('.story-card'));
+  cards.forEach((card, index) => {
+    const isLast = index === cards.length - 1;
+    // Skipped on the state-map card: it already has its own internal
+    // scroll area (Grid/Map toggle, legend, readout), so a second
+    // bottom-anchored cue there would just add visual clutter.
+    if (isLast || card.classList.contains('state-map-card')) return;
+    addScrollCue(card);
+  });
+}
+
 function setupKeyboardNav(root) {
   root.addEventListener('keydown', (event) => {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
@@ -349,4 +379,5 @@ for (const category of CATEGORIES) {
   renderCategoryCard(root, category, groups.get(category));
 }
 
+addScrollCues(root);
 setupKeyboardNav(root);
