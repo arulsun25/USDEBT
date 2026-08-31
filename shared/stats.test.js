@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { STATS, CATEGORIES, CATEGORY_LABELS, groupByCategory, validateStats } from './stats.js';
+import { STATS, CATEGORIES, CATEGORY_LABELS, CATEGORY_EXPLAINERS, groupByCategory, validateStats } from './stats.js';
 
 test('STATS has exactly 45 entries', () => {
   assert.equal(STATS.length, 45);
@@ -13,6 +13,12 @@ test('all stats pass validation with no errors', () => {
 test('every category has a display label', () => {
   for (const category of CATEGORIES) {
     assert.ok(CATEGORY_LABELS[category], `missing label for ${category}`);
+  }
+});
+
+test('every category has a one-line explainer', () => {
+  for (const category of CATEGORIES) {
+    assert.ok(CATEGORY_EXPLAINERS[category], `missing explainer for ${category}`);
   }
 });
 

@@ -1,21 +1,29 @@
 # US Debt Clock Clone (Phase 1 — Simulated Data)
 
-Three navigation prototypes over the same ~45 economic/debt stats, each
+Full-screen, swipeable story cards over ~45 economic/debt stats, each
 animated as a live-ticking counter client-side (baseline value + per-second
 growth rate — the same technique the real usdebtclock.org uses). No backend,
 no build step, no npm install required to view the site.
 
+One card per category (Debt, Spending, Revenue, Economy, Population,
+Personal Debt), each with a headline stat, a one-line explainer, and up to 3
+supporting stats. Navigate by scrolling/swiping, or with the Up/Down arrow
+keys once the page has focus.
+
+This was narrowed down from three UI prototypes (a grid dashboard, category
+tabs, and these story cards) after comparing them locally — story cards won.
+
 ## Run it locally
 
 Serve the project root with any static file server (required because the
-prototypes load `shared/stats.js` / `shared/ticker.js` as ES modules, which
+site loads `shared/stats.js` / `shared/ticker.js` as ES modules, which
 browsers block over a bare `file://` URL):
 
     python -m http.server 8000
     # or, if you have Node:
     npx serve .
 
-Then open http://localhost:8000 and pick one of the three prototypes.
+Then open http://localhost:8000.
 
 ## Run the tests
 
@@ -24,15 +32,6 @@ Requires Node.js 18+.
     npm test
 
 This runs `node --test`, which discovers `shared/*.test.js` and `tests/*.test.js`.
-
-## The three prototypes
-
-- **A — Grid Dashboard** (`prototype-a-grid/`): dense, all-categories-at-once
-  panel grid, closest to the original usdebtclock.org.
-- **B — Category Tabs** (`prototype-b-tabs/`): one category at a time via a
-  tab bar (bottom on mobile, top on desktop).
-- **C — Story Cards** (`prototype-c-cards/`): full-screen swipeable cards,
-  one headline stat plus supporting stats per category.
 
 ## Updating the stats
 
@@ -46,8 +45,9 @@ All stat data lives in `shared/stats.js`. Each entry has:
 
 To refresh: update `baseline`, `asOf`, and `perSecondRate` for each stat you
 want current, then run `npm test` to confirm `validateStats` still passes.
-All three prototypes pick up the change automatically since they all import
-from this one file.
+
+Each category's one-line explainer lives in `CATEGORY_EXPLAINERS`, also in
+`shared/stats.js`.
 
 ## What's deferred
 

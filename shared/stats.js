@@ -11,6 +11,15 @@ export const CATEGORY_LABELS = {
   personal: 'Personal Debt',
 };
 
+export const CATEGORY_EXPLAINERS = {
+  debt: 'What the federal government owes, and who it owes it to.',
+  spending: 'Where federal tax dollars go each fiscal year.',
+  revenue: 'What the federal government collects, and from whom.',
+  economy: 'The broader indicators debt and spending play out against.',
+  population: 'The people every other card’s totals are divided among.',
+  personal: 'What households owe outside of the federal government.',
+};
+
 const VALID_UNITS = new Set(['usd', 'usd-cents', 'count', 'percent']);
 
 export const STATS = [

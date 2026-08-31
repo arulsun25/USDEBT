@@ -7,21 +7,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>US Debt Clock Clone</h1>
-  <p class="intro">Three navigation prototypes over the same ~45 live-ticking stats. Pick one to explore.</p>
-  <div class="prototype-grid">
-    <a class="prototype-card" href="prototype-a-grid/index.html">
-      <h2>A &mdash; Grid Dashboard</h2>
-      <p>Dense, all-at-once panel grid, closest to the original usdebtclock.org.</p>
-    </a>
-    <a class="prototype-card" href="prototype-b-tabs/index.html">
-      <h2>B &mdash; Category Tabs</h2>
-      <p>Browse one category at a time via a tab bar &mdash; less overwhelming.</p>
-    </a>
-    <a class="prototype-card" href="prototype-c-cards/index.html">
-      <h2>C &mdash; Story Cards</h2>
-      <p>Full-screen swipeable cards, one headline stat per category.</p>
-    </a>
-  </div>
+  <div id="cards" class="cards-root" tabindex="0"></div>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

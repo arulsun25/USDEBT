@@ -5,34 +5,54 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #0b0f14;
   color: #e8f1ff;
-  padding: 1.5rem;
 }
-h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
-p.intro { color: #9fb3c8; margin-top: 0; margin-bottom: 1.5rem; }
-.prototype-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+.cards-root {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100vh;
+  height: 100dvh;
 }
-.prototype-card {
-  display: block;
-  background: #121821;
-  border: 1px solid #223040;
-  border-radius: 10px;
-  padding: 1.25rem;
-  color: inherit;
-  text-decoration: none;
+.story-card {
+  scroll-snap-align: start;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+  border-bottom: 1px solid #223040;
 }
-.prototype-card h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.1rem;
-  color: #4ade80;
-}
-.prototype-card p {
-  margin: 0;
-  color: #9fb3c8;
+.story-card h2 {
+  color: #7fb3ff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   font-size: 0.9rem;
+  margin-bottom: 1rem;
 }
-@media (max-width: 480px) {
-  body { padding: 1rem; }
+.headline-value {
+  color: #4ade80;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 6vw, 3.5rem);
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
 }
+.headline-label { color: #9fb3c8; margin-top: 0.5rem; font-size: 1rem; }
+.explainer {
+  color: #9fb3c8;
+  font-size: 0.85rem;
+  max-width: 420px;
+  margin: 0.75rem 0 0;
+  line-height: 1.4;
+}
+.supporting-stats { margin-top: 2rem; width: 100%; max-width: 420px; }
+.supporting-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #1c2530;
+  font-size: 0.85rem;
+}
+.supporting-row span:first-child { color: #9fb3c8; }
+.supporting-row span:last-child { color: #e8f1ff; font-weight: 600; font-variant-numeric: tabular-nums; }
