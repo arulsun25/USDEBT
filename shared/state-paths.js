@@ -101,13 +101,33 @@ export function getPathBounds(paths) {
   return { minX, minY, maxX, maxY };
 }
 
-// Label anchor point for one state: the center of its own bounding box. Not a
-// true geometric centroid (a concave state like Michigan or Louisiana can
-// have its bbox-center fall slightly off the actual landmass), but simple,
-// deterministic, and close enough at this map's scale for a small code label.
+// Splits a path string into its subpaths (each starting with M/m). Most
+// states are one subpath; a few (Hawaii's separate islands, Michigan's two
+// peninsulas plus a small offshore piece) are several.
+function splitSubpaths(d) {
+  return d.match(/[Mm][^Mm]*/g) || [d];
+}
+
+// Label anchor point for one state: the center of its largest subpath's
+// bounding box (by area) — not a true geometric centroid (a concave state
+// like Louisiana can still have its bbox-center fall slightly off the
+// landmass), but simple, deterministic, and close enough at this map's scale
+// for a small code label. Picking the largest subpath specifically matters
+// for multi-part states: centering on the *whole* path's bounding box would
+// land Hawaii's or Michigan's label in open water between their separate
+// pieces rather than on either one.
 export function getLabelPosition(d) {
-  const { minX, minY, maxX, maxY } = boundsOfPath(d);
-  return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+  let best = null;
+  let bestArea = -Infinity;
+  for (const subpath of splitSubpaths(d)) {
+    const bounds = boundsOfPath(subpath);
+    const area = (bounds.maxX - bounds.minX) * (bounds.maxY - bounds.minY);
+    if (area > bestArea) {
+      bestArea = area;
+      best = bounds;
+    }
+  }
+  return { x: (best.minX + best.maxX) / 2, y: (best.minY + best.maxY) / 2 };
 }
 
 export function validateStatePaths(paths, expectedCodes) {

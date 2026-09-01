@@ -7,7 +7,7 @@ export const STATE_GRID_ROWS = 9;
 export const STATE_GRID_COLS = 13;
 
 export const STATE_MAP_EXPLAINER =
-  "Each state's own bonded debt, not the federal government's — shaded from low (dark) to high (red). Tap a tile to see the number.";
+  "Each state's own bonded debt, not the federal government's — shaded from low (dark) to high (bright blue). Tap a state to see the number.";
 
 // row/col place each state on a stylized grid map (row 0 = north, col 0 = west),
 // not a geographically precise outline — a simplified "tile map" like the ones

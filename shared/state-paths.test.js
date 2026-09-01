@@ -57,3 +57,21 @@ test('getLabelPosition for Wyoming (a near-rectangle) lands near its visual cent
   assert.ok(Math.abs(x - 296) < 15, `x=${x} not near expected ~296`);
   assert.ok(Math.abs(y - 174) < 15, `y=${y} not near expected ~174`);
 });
+
+test('getLabelPosition for multi-part states (Hawaii, Michigan) lands on their largest piece, not in the gap between pieces', () => {
+  // Hawaii is several disconnected islands spanning roughly x:233-346,
+  // y:510-583 overall; centering on that whole span (the old behavior)
+  // would land around x=289, y=546 — open water between islands. The
+  // largest single island (by bounding-box area) sits around x:320-347,
+  // y:552-583, so the label should land there instead.
+  const hi = getLabelPosition(STATE_PATHS.HI);
+  assert.ok(hi.x > 315 && hi.x < 350, `HI x=${hi.x} not within its largest island`);
+  assert.ok(hi.y > 550 && hi.y < 585, `HI y=${hi.y} not within its largest island`);
+
+  // Michigan is its two peninsulas plus a small offshore piece; the label
+  // should land within one of those real landmass pieces (not at the
+  // whole-shape bbox center, which falls in Lake Michigan/Huron).
+  const mi = getLabelPosition(STATE_PATHS.MI);
+  assert.ok(mi.x > 600 && mi.x < 700, `MI x=${mi.x} not within a real subpath`);
+  assert.ok(mi.y > 100 && mi.y < 220, `MI y=${mi.y} not within a real subpath`);
+});

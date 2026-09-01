@@ -1,7 +1,7 @@
 import { STATS, CATEGORIES, CATEGORY_LABELS, CATEGORY_EXPLAINERS, CATEGORY_SOURCES, groupByCategory } from './shared/stats.js';
 import { STATE_DEBT, STATE_GRID_ROWS, STATE_GRID_COLS, STATE_MAP_EXPLAINER } from './shared/states.js';
 import { STATE_PATHS, getPathBounds, getLabelPosition } from './shared/state-paths.js';
-import { startTicker, formatValue, computeCurrentValue } from './shared/ticker.js';
+import { startTicker } from './shared/ticker.js';
 
 function renderCategoryCard(root, category, statsForCategory) {
   const card = document.createElement('section');
@@ -130,6 +130,7 @@ function buildGridView(states, min, max, interactions) {
     tile.type = 'button';
     tile.className = 'state-tile';
     tile.textContent = state.code;
+    tile.setAttribute('aria-label', `${state.name}: ${state.code}`);
     tile.style.gridRow = String(state.row + 1);
     tile.style.gridColumn = String(state.col + 1);
     const { background, textColor, haloColor } = colorForDebt(state.baseline, min, max);
@@ -209,6 +210,7 @@ function renderStateMapCard(root, states, paths) {
   legendLow.textContent = 'Lower debt';
   const legendBar = document.createElement('div');
   legendBar.className = 'state-legend-bar';
+  legendBar.style.background = `linear-gradient(to right, rgb(${STATE_COLOR_LOW.join(', ')}), rgb(${STATE_COLOR_HIGH.join(', ')}))`;
   const legendHigh = document.createElement('span');
   legendHigh.textContent = 'Higher debt';
   legend.appendChild(legendLow);
@@ -262,6 +264,26 @@ function renderStateMapCard(root, states, paths) {
     });
   }
 
+  let stopTooltip = null;
+  function hideTooltip() {
+    if (stopTooltip) {
+      stopTooltip();
+      stopTooltip = null;
+    }
+    tooltip.hidden = true;
+  }
+
+  // Ticks on its own, the same way the readout does — a one-off snapshot
+  // taken at mouseenter would go stale the longer the pointer sits still,
+  // showing a different number than the (still-ticking) readout beneath it.
+  function showTooltipFor(state) {
+    if (stopTooltip) stopTooltip();
+    tooltip.hidden = false;
+    stopTooltip = startTicker(state, (text) => {
+      tooltip.textContent = `${state.name}: ${text}`;
+    });
+  }
+
   let pinnedState = null;
   function pinState(state) {
     pinnedState = state;
@@ -282,19 +304,21 @@ function renderStateMapCard(root, states, paths) {
 
   function previewHover(state, clientX, clientY) {
     showInReadout(state);
-    tooltip.textContent = `${state.name}: ${formatValue(computeCurrentValue(state), state.unit)}`;
-    tooltip.hidden = false;
+    showTooltipFor(state);
     positionTooltip(clientX, clientY);
   }
 
   function previewFocus(state) {
-    // Keyboard focus has no cursor position to anchor a floating tooltip to —
-    // the always-visible readout panel is this path's feedback instead.
+    // Keyboard focus has no cursor position to anchor a floating tooltip to,
+    // and a mouse hover elsewhere may have left one open — close it so focus
+    // and tooltip never show two different states at once. The always-visible
+    // readout panel is this path's feedback instead.
+    hideTooltip();
     showInReadout(state);
   }
 
   function endPreview() {
-    tooltip.hidden = true;
+    hideTooltip();
     if (pinnedState) showInReadout(pinnedState);
   }
 
@@ -376,16 +400,38 @@ function addScrollCues(root) {
 }
 
 function setupKeyboardNav(root) {
+  const cards = Array.from(root.querySelectorAll('.story-card'));
+  // While a smooth scroll from a previous keypress is still in flight,
+  // scrollTop sits partway between cards — a second press before it settles
+  // would recompute its target from that in-between position and could
+  // re-target the card already being scrolled to instead of advancing.
+  // Ignore new presses until 'scrollend' fires (with a timeout fallback for
+  // browsers that don't support it).
+  let isScrolling = false;
+  let fallbackTimer = null;
+
+  root.addEventListener('scrollend', () => {
+    isScrolling = false;
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+  });
+
   root.addEventListener('keydown', (event) => {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
     event.preventDefault();
-    const cards = Array.from(root.querySelectorAll('.story-card'));
-    const cardHeight = root.clientHeight;
+    if (isScrolling) return;
+
+    const cardHeight = root.clientHeight || 1;
     const currentIndex = Math.round(root.scrollTop / cardHeight);
     const nextIndex =
       event.key === 'ArrowDown'
         ? Math.min(currentIndex + 1, cards.length - 1)
         : Math.max(currentIndex - 1, 0);
+    if (nextIndex === currentIndex) return;
+
+    isScrolling = true;
+    fallbackTimer = setTimeout(() => {
+      isScrolling = false;
+    }, 600);
     cards[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 }
