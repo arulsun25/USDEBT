@@ -4,10 +4,13 @@ import { STATE_PATHS, getPathBounds, getLabelPosition } from './shared/state-pat
 import {
   DEBT_TO_GOLD_CHAIN,
   GOLD_THESIS_EXPLAINER,
+  GOLD_PROJECTION_DISCLAIMER,
   GOLD_LIVE_PRICE_URL,
   GOLD_HISTORY_URL,
   GOLD_SOURCES,
   computeTrend,
+  computeAnnualizedRate,
+  projectPrice,
 } from './shared/gold.js';
 import { startTicker, formatValue } from './shared/ticker.js';
 
@@ -437,6 +440,30 @@ function renderGoldCard(root) {
 
   card.appendChild(priceBlock);
 
+  const projectionBlock = document.createElement('div');
+  projectionBlock.className = 'gold-projection';
+  projectionBlock.hidden = true;
+
+  const projectionHeading = document.createElement('div');
+  projectionHeading.className = 'gold-projection-heading';
+  projectionHeading.textContent = 'If This Pace Continued (not a forecast)';
+  projectionBlock.appendChild(projectionHeading);
+
+  const projection1yr = document.createElement('div');
+  projection1yr.className = 'gold-projection-row';
+  projectionBlock.appendChild(projection1yr);
+
+  const projection3yr = document.createElement('div');
+  projection3yr.className = 'gold-projection-row';
+  projectionBlock.appendChild(projection3yr);
+
+  const projectionDisclaimer = document.createElement('p');
+  projectionDisclaimer.className = 'gold-projection-disclaimer';
+  projectionDisclaimer.textContent = GOLD_PROJECTION_DISCLAIMER;
+  projectionBlock.appendChild(projectionDisclaimer);
+
+  card.appendChild(projectionBlock);
+
   const sourceBlock = document.createElement('div');
   sourceBlock.className = 'source-note';
   for (const source of GOLD_SOURCES) {
@@ -452,10 +479,25 @@ function renderGoldCard(root) {
 
   root.appendChild(card);
 
-  loadGoldData(priceValue, priceLabel, trendRow);
+  loadGoldData(priceValue, priceLabel, trendRow, projectionBlock, projection1yr, projection3yr);
 }
 
-async function loadGoldData(priceValue, priceLabel, trendRow) {
+// Builds one "if this pace continued" line from a lookback window's real
+// trend, or a plain "not enough data" message if that window's trend
+// couldn't be computed — never silently omits the row.
+function renderProjectionRow(rowEl, label, history, currentPrice, now, lookbackDays, projectionYears) {
+  const trend = computeTrend(history, currentPrice, now, lookbackDays);
+  const rate = trend ? computeAnnualizedRate(trend.fromPrice, currentPrice, trend.actualDaysElapsed) : null;
+  if (!trend || rate === null) {
+    rowEl.textContent = `${label}: not enough historical data to extrapolate`;
+    return;
+  }
+  const projected = projectPrice(currentPrice, rate, projectionYears);
+  const sign = rate >= 0 ? '+' : '';
+  rowEl.textContent = `${label}: ${formatValue(projected, 'usd-cents')} (at the last ${lookbackDays >= 365 ? Math.round(lookbackDays / 365) + '-year' : lookbackDays + '-day'} pace, ${sign}${(rate * 100).toFixed(1)}%/yr)`;
+}
+
+async function loadGoldData(priceValue, priceLabel, trendRow, projectionBlock, projection1yr, projection3yr) {
   let currentPrice;
   try {
     const priceRes = await fetch(GOLD_LIVE_PRICE_URL);
@@ -475,15 +517,22 @@ async function loadGoldData(priceValue, priceLabel, trendRow) {
     return;
   }
 
+  let history;
   try {
     const historyRes = await fetch(GOLD_HISTORY_URL);
     if (!historyRes.ok) throw new Error(`history fetch failed: ${historyRes.status}`);
-    const history = await historyRes.json();
-    const trend = computeTrend(history, currentPrice, new Date(), 30);
-    if (!trend) {
-      trendRow.textContent = 'Recent trend unavailable right now.';
-      return;
-    }
+    history = await historyRes.json();
+  } catch (historyError) {
+    trendRow.textContent = 'Recent trend unavailable right now.';
+    return;
+  }
+
+  const now = new Date();
+
+  const trend = computeTrend(history, currentPrice, now, 30);
+  if (!trend) {
+    trendRow.textContent = 'Recent trend unavailable right now.';
+  } else {
     const direction = trend.percentChange >= 0 ? '▲' : '▼';
     const sign = trend.percentChange >= 0 ? '+' : '';
     // trend.fromDate is a date-only string (YYYY-MM-DD), parsed as UTC
@@ -492,9 +541,14 @@ async function loadGoldData(priceValue, priceLabel, trendRow) {
     const fromDateLabel = new Date(trend.fromDate).toLocaleDateString('en-US', { dateStyle: 'medium', timeZone: 'UTC' });
     trendRow.textContent = `${direction} ${sign}${trend.percentChange.toFixed(1)}% since ${fromDateLabel} (${trend.actualDaysElapsed} days ago)`;
     trendRow.classList.add(trend.percentChange >= 0 ? 'gold-trend-up' : 'gold-trend-down');
-  } catch (historyError) {
-    trendRow.textContent = 'Recent trend unavailable right now.';
   }
+
+  // Matched-horizon extrapolation: project N years forward using the real
+  // trailing N-year rate, rather than compounding one short-term rate over a
+  // multi-year horizon (which a single noisy 30-day move could distort wildly).
+  renderProjectionRow(projection1yr, '1 year', history, currentPrice, now, 365, 1);
+  renderProjectionRow(projection3yr, '3 years', history, currentPrice, now, 3 * 365, 3);
+  projectionBlock.hidden = false;
 }
 
 function addScrollCue(card) {

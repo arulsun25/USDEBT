@@ -1,6 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEBT_TO_GOLD_CHAIN, GOLD_THESIS_EXPLAINER, GOLD_SOURCES, computeTrend } from './gold.js';
+import {
+  DEBT_TO_GOLD_CHAIN,
+  GOLD_THESIS_EXPLAINER,
+  GOLD_SOURCES,
+  GOLD_PROJECTION_DISCLAIMER,
+  computeTrend,
+  computeAnnualizedRate,
+  projectPrice,
+} from './gold.js';
 
 test('DEBT_TO_GOLD_CHAIN has all 8 steps, each a non-empty string', () => {
   assert.equal(DEBT_TO_GOLD_CHAIN.length, 8);
@@ -60,4 +68,35 @@ test('computeTrend handles a price decline correctly (negative percent change)',
   const result = computeTrend(history, 4500, now, 31);
   assert.ok(result.percentChange < 0, `expected a negative change, got ${result.percentChange}`);
   assert.ok(Math.abs(result.percentChange - -10) < 0.001);
+});
+
+test('GOLD_PROJECTION_DISCLAIMER explicitly says this is not a forecast', () => {
+  assert.ok(GOLD_PROJECTION_DISCLAIMER.length > 0);
+  const lower = GOLD_PROJECTION_DISCLAIMER.toLowerCase();
+  assert.match(lower, /not.*(predictions?|forecasts?)/);
+});
+
+test('computeAnnualizedRate: 10% growth over exactly one year is a 10% annual rate', () => {
+  const rate = computeAnnualizedRate(100, 110, 365);
+  assert.ok(Math.abs(rate - 0.1) < 0.0001, `expected ~0.1, got ${rate}`);
+});
+
+test('computeAnnualizedRate: doubling over 2 years annualizes to ~41.4% (compounding, not 50%)', () => {
+  const rate = computeAnnualizedRate(100, 200, 730);
+  assert.ok(Math.abs(rate - 0.4142) < 0.001, `expected ~0.4142, got ${rate}`);
+});
+
+test('computeAnnualizedRate returns null for zero/negative elapsed days or non-positive fromPrice', () => {
+  assert.equal(computeAnnualizedRate(100, 110, 0), null);
+  assert.equal(computeAnnualizedRate(100, 110, -5), null);
+  assert.equal(computeAnnualizedRate(0, 110, 365), null);
+});
+
+test('projectPrice compounds a rate forward the given number of years', () => {
+  // 10%/year for 3 years: 100 * 1.1^3 = 133.1
+  assert.ok(Math.abs(projectPrice(100, 0.1, 3) - 133.1) < 0.01);
+  // 0% rate leaves the price unchanged regardless of horizon.
+  assert.equal(projectPrice(4300, 0, 5), 4300);
+  // A negative rate (a declining trend) projects a lower future price.
+  assert.ok(projectPrice(100, -0.1, 1) < 100);
 });
