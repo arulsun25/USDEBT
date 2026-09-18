@@ -278,3 +278,57 @@ body {
   word-break: break-all;
   margin-top: 0.25rem;
 }
+
+.gold-card {
+  justify-content: flex-start;
+  padding-top: 2.5rem;
+  overflow-y: auto;
+}
+.gold-chain {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 100%;
+  max-width: 360px;
+}
+.gold-chain-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  background: #121821;
+  border: 1px solid #223040;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #e8f1ff;
+  text-align: left;
+}
+.gold-chain-step-final {
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.1);
+  color: #eab308;
+  font-weight: 700;
+}
+.gold-chain-arrow {
+  color: #4ade80;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+.gold-chain-step-final .gold-chain-arrow { color: #eab308; }
+.gold-chain-connector {
+  color: #556577;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+.gold-price-block { margin-top: 1.5rem; }
+.gold-trend {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #9fb3c8;
+  font-variant-numeric: tabular-nums;
+}
+.gold-trend-up { color: #4ade80; }
+.gold-trend-down { color: #f87171; }

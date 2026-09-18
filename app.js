@@ -1,7 +1,15 @@
 import { STATS, CATEGORIES, CATEGORY_LABELS, CATEGORY_EXPLAINERS, CATEGORY_SOURCES, groupByCategory } from './shared/stats.js';
 import { STATE_DEBT, STATE_GRID_ROWS, STATE_GRID_COLS, STATE_MAP_EXPLAINER } from './shared/states.js';
 import { STATE_PATHS, getPathBounds, getLabelPosition } from './shared/state-paths.js';
-import { startTicker } from './shared/ticker.js';
+import {
+  DEBT_TO_GOLD_CHAIN,
+  GOLD_THESIS_EXPLAINER,
+  GOLD_LIVE_PRICE_URL,
+  GOLD_HISTORY_URL,
+  GOLD_SOURCES,
+  computeTrend,
+} from './shared/gold.js';
+import { startTicker, formatValue } from './shared/ticker.js';
 
 function renderCategoryCard(root, category, statsForCategory) {
   const card = document.createElement('section');
@@ -369,6 +377,126 @@ function renderStateMapCard(root, states, paths) {
   root.appendChild(card);
 }
 
+function renderGoldCard(root) {
+  const card = document.createElement('section');
+  card.className = 'story-card gold-card';
+
+  const heading = document.createElement('h2');
+  heading.textContent = 'Debt → Gold';
+  card.appendChild(heading);
+
+  const chain = document.createElement('div');
+  chain.className = 'gold-chain';
+  DEBT_TO_GOLD_CHAIN.forEach((step, index) => {
+    if (index > 0) {
+      const connector = document.createElement('div');
+      connector.className = 'gold-chain-connector';
+      connector.textContent = '⌄';
+      connector.setAttribute('aria-hidden', 'true');
+      chain.appendChild(connector);
+    }
+
+    const stepEl = document.createElement('div');
+    stepEl.className = 'gold-chain-step';
+    if (index === DEBT_TO_GOLD_CHAIN.length - 1) stepEl.classList.add('gold-chain-step-final');
+
+    const label = document.createElement('span');
+    label.textContent = step;
+    const arrow = document.createElement('span');
+    arrow.className = 'gold-chain-arrow';
+    arrow.textContent = '↑';
+    arrow.setAttribute('aria-hidden', 'true');
+
+    stepEl.appendChild(label);
+    stepEl.appendChild(arrow);
+    chain.appendChild(stepEl);
+  });
+  card.appendChild(chain);
+
+  const explainer = document.createElement('p');
+  explainer.className = 'explainer';
+  explainer.textContent = GOLD_THESIS_EXPLAINER;
+  card.appendChild(explainer);
+
+  const priceBlock = document.createElement('div');
+  priceBlock.className = 'gold-price-block';
+
+  const priceValue = document.createElement('div');
+  priceValue.className = 'headline-value';
+  priceValue.textContent = 'Loading live price…';
+  priceBlock.appendChild(priceValue);
+
+  const priceLabel = document.createElement('div');
+  priceLabel.className = 'headline-label';
+  priceLabel.textContent = 'Live Gold Price (XAU/USD)';
+  priceBlock.appendChild(priceLabel);
+
+  const trendRow = document.createElement('div');
+  trendRow.className = 'gold-trend';
+  priceBlock.appendChild(trendRow);
+
+  card.appendChild(priceBlock);
+
+  const sourceBlock = document.createElement('div');
+  sourceBlock.className = 'source-note';
+  for (const source of GOLD_SOURCES) {
+    const link = document.createElement('a');
+    link.className = 'source-link';
+    link.href = source.url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = `Source: ${source.label} ↗`;
+    sourceBlock.appendChild(link);
+  }
+  card.appendChild(sourceBlock);
+
+  root.appendChild(card);
+
+  loadGoldData(priceValue, priceLabel, trendRow);
+}
+
+async function loadGoldData(priceValue, priceLabel, trendRow) {
+  let currentPrice;
+  try {
+    const priceRes = await fetch(GOLD_LIVE_PRICE_URL);
+    if (!priceRes.ok) throw new Error(`price fetch failed: ${priceRes.status}`);
+    const priceData = await priceRes.json();
+    currentPrice = priceData.price;
+    const updatedAt = new Date(priceData.updatedAt);
+
+    priceValue.textContent = formatValue(currentPrice, 'usd-cents');
+    priceLabel.textContent = `Live Gold Price (XAU/USD) — as of ${updatedAt.toLocaleString('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })}`;
+  } catch (priceError) {
+    priceValue.textContent = 'Live price unavailable';
+    priceLabel.textContent = 'Could not reach the gold price API right now — try refreshing the page.';
+    return;
+  }
+
+  try {
+    const historyRes = await fetch(GOLD_HISTORY_URL);
+    if (!historyRes.ok) throw new Error(`history fetch failed: ${historyRes.status}`);
+    const history = await historyRes.json();
+    const trend = computeTrend(history, currentPrice, new Date(), 30);
+    if (!trend) {
+      trendRow.textContent = 'Recent trend unavailable right now.';
+      return;
+    }
+    const direction = trend.percentChange >= 0 ? '▲' : '▼';
+    const sign = trend.percentChange >= 0 ? '+' : '';
+    // trend.fromDate is a date-only string (YYYY-MM-DD), parsed as UTC
+    // midnight — format it in UTC too, or a viewer west of UTC would see it
+    // displayed as one day earlier than the actual data date.
+    const fromDateLabel = new Date(trend.fromDate).toLocaleDateString('en-US', { dateStyle: 'medium', timeZone: 'UTC' });
+    trendRow.textContent = `${direction} ${sign}${trend.percentChange.toFixed(1)}% since ${fromDateLabel} (${trend.actualDaysElapsed} days ago)`;
+    trendRow.classList.add(trend.percentChange >= 0 ? 'gold-trend-up' : 'gold-trend-down');
+  } catch (historyError) {
+    trendRow.textContent = 'Recent trend unavailable right now.';
+  }
+}
+
 function addScrollCue(card) {
   const cue = document.createElement('div');
   cue.className = 'scroll-cue';
@@ -391,10 +519,11 @@ function addScrollCues(root) {
   const cards = Array.from(root.querySelectorAll('.story-card'));
   cards.forEach((card, index) => {
     const isLast = index === cards.length - 1;
-    // Skipped on the state-map card: it already has its own internal
-    // scroll area (Grid/Map toggle, legend, readout), so a second
-    // bottom-anchored cue there would just add visual clutter.
-    if (isLast || card.classList.contains('state-map-card')) return;
+    // Skipped on the state-map card (its own internal scroll area — toggle,
+    // legend, readout) and the gold card (chain diagram + explainer + price
+    // + trend + sources is already a lot in one screen) — a bottom-anchored
+    // cue on either would just add clutter on top of their own scrolling.
+    if (isLast || card.classList.contains('state-map-card') || card.classList.contains('gold-card')) return;
     addScrollCue(card);
   });
 }
@@ -441,6 +570,7 @@ const groups = groupByCategory(STATS);
 
 renderCategoryCard(root, 'debt', groups.get('debt'));
 renderStateMapCard(root, STATE_DEBT, STATE_PATHS);
+renderGoldCard(root);
 for (const category of CATEGORIES) {
   if (category === 'debt') continue;
   renderCategoryCard(root, category, groups.get(category));
