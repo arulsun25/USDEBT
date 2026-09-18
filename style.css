@@ -70,6 +70,11 @@ body {
   align-items: center;
   gap: 0.1rem;
   color: #9fb3c8;
+  /* On a card with its own internal overflow-y:auto (like the gold card),
+     this sits at a fixed screen position over whatever content has scrolled
+     underneath it — pointer-events:none keeps it from blocking taps/clicks
+     on that content (e.g. the source links) when they land in the same spot. */
+  pointer-events: none;
   animation: scroll-cue-bounce 1.6s ease-in-out infinite;
 }
 .scroll-cue-chevron {
@@ -359,4 +364,34 @@ body {
   color: #9fb3c8;
   font-size: 0.68rem;
   line-height: 1.4;
+}
+.gold-data-heading {
+  margin-top: 1.75rem;
+  color: #7fb3ff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-top: 1px solid #223040;
+  padding-top: 1.25rem;
+  width: 100%;
+  max-width: 420px;
+}
+.gold-bridge {
+  color: #9fb3c8;
+  font-size: 0.78rem;
+  max-width: 380px;
+  margin: 0.5rem 0 0;
+  line-height: 1.4;
+}
+.gold-tension-note {
+  margin: 0.6rem 0 0;
+  padding: 0.5rem 0.75rem;
+  background: rgba(127, 179, 255, 0.08);
+  border: 1px solid #223040;
+  border-radius: 6px;
+  color: #9fb3c8;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  max-width: 380px;
 }

@@ -421,6 +421,21 @@ function renderGoldCard(root) {
   explainer.textContent = GOLD_THESIS_EXPLAINER;
   card.appendChild(explainer);
 
+  // The chain above is a qualitative narrative; the numbers below are
+  // independent real data, not derived from it. Without saying so explicitly,
+  // a reader could easily assume the projection further down is somehow
+  // computed FROM the 8 steps — it isn't, it's pure historical-trend math.
+  const dataHeading = document.createElement('div');
+  dataHeading.className = 'gold-data-heading';
+  dataHeading.textContent = 'The Real Data';
+  card.appendChild(dataHeading);
+
+  const bridge = document.createElement('p');
+  bridge.className = 'gold-bridge';
+  bridge.textContent =
+    "The chain above is a narrative, not a formula — nothing below is calculated from it. These are independent, real numbers: today's live gold price, and two honest answers to 'what if the recent trend continued.'";
+  card.appendChild(bridge);
+
   const priceBlock = document.createElement('div');
   priceBlock.className = 'gold-price-block';
 
@@ -437,6 +452,11 @@ function renderGoldCard(root) {
   const trendRow = document.createElement('div');
   trendRow.className = 'gold-trend';
   priceBlock.appendChild(trendRow);
+
+  const tensionNote = document.createElement('p');
+  tensionNote.className = 'gold-tension-note';
+  tensionNote.hidden = true;
+  priceBlock.appendChild(tensionNote);
 
   card.appendChild(priceBlock);
 
@@ -479,7 +499,7 @@ function renderGoldCard(root) {
 
   root.appendChild(card);
 
-  loadGoldData(priceValue, priceLabel, trendRow, projectionBlock, projection1yr, projection3yr);
+  loadGoldData(priceValue, priceLabel, trendRow, tensionNote, projectionBlock, projection1yr, projection3yr);
 }
 
 // Builds one "if this pace continued" line from a lookback window's real
@@ -497,7 +517,7 @@ function renderProjectionRow(rowEl, label, history, currentPrice, now, lookbackD
   rowEl.textContent = `${label}: ${formatValue(projected, 'usd-cents')} (at the last ${lookbackDays >= 365 ? Math.round(lookbackDays / 365) + '-year' : lookbackDays + '-day'} pace, ${sign}${(rate * 100).toFixed(1)}%/yr)`;
 }
 
-async function loadGoldData(priceValue, priceLabel, trendRow, projectionBlock, projection1yr, projection3yr) {
+async function loadGoldData(priceValue, priceLabel, trendRow, tensionNote, projectionBlock, projection1yr, projection3yr) {
   let currentPrice;
   try {
     const priceRes = await fetch(GOLD_LIVE_PRICE_URL);
@@ -541,6 +561,16 @@ async function loadGoldData(priceValue, priceLabel, trendRow, projectionBlock, p
     const fromDateLabel = new Date(trend.fromDate).toLocaleDateString('en-US', { dateStyle: 'medium', timeZone: 'UTC' });
     trendRow.textContent = `${direction} ${sign}${trend.percentChange.toFixed(1)}% since ${fromDateLabel} (${trend.actualDaysElapsed} days ago)`;
     trendRow.classList.add(trend.percentChange >= 0 ? 'gold-trend-up' : 'gold-trend-down');
+
+    // Say plainly whether the recent real number agrees with the thesis
+    // above or not — presenting a rising-debt narrative next to a declining
+    // recent price with no comment would let the two silently contradict
+    // each other unremarked.
+    tensionNote.hidden = false;
+    tensionNote.textContent =
+      trend.percentChange >= 0
+        ? "This recent uptrend is at least consistent with the thesis above — though gold moves on many factors besides debt, so agreement here isn't confirmation of it."
+        : 'Worth noting: despite the debt-driven thesis above, gold has recently moved the other way — a reminder this is a long-run narrative about pressure building up, not a guarantee it shows up in any given month.';
   }
 
   // Matched-horizon extrapolation: project N years forward using the real
@@ -573,11 +603,13 @@ function addScrollCues(root) {
   const cards = Array.from(root.querySelectorAll('.story-card'));
   cards.forEach((card, index) => {
     const isLast = index === cards.length - 1;
-    // Skipped on the state-map card (its own internal scroll area — toggle,
-    // legend, readout) and the gold card (chain diagram + explainer + price
-    // + trend + sources is already a lot in one screen) — a bottom-anchored
-    // cue on either would just add clutter on top of their own scrolling.
-    if (isLast || card.classList.contains('state-map-card') || card.classList.contains('gold-card')) return;
+    // Skipped only on the state-map card, whose Grid/Map toggle + legend +
+    // readout already visually signal there's more going on. The gold card
+    // has no such affordance and is long-form reading content — it needs the
+    // cue at least as much as the plain category cards do, maybe more, since
+    // its content runs past one screen (this was the actual bug reported:
+    // the projection section below the fold went unnoticed with no cue).
+    if (isLast || card.classList.contains('state-map-card')) return;
     addScrollCue(card);
   });
 }
